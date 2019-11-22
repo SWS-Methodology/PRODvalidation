@@ -51,7 +51,7 @@ DIM_ELEM_PROD <- c("5510", "5312", "5421") #
 # XXX; heads / 1000 heads
 DIM_ELEM_TRADE <- c("5610", "5910")
 
-THRESHOLD_PA <- 0.5
+THRESHOLD_PA <- 0.7
 THRESHOLD_Y <- 0.3
 
 
