@@ -592,6 +592,15 @@ server <- function(input, output, session) {
           params = params,
           envir = new.env(parent = globalenv())
         )
+
+        if (REMOTE == TRUE) {
+          send_mail(
+            from = "do-not-reply@fao.org",
+            to = cache$session_info$swsContext.userEmail,
+            subject = "Production validation report",
+            body = c("Production validation report attached.", file)
+          )
+        }
       }
     )
 
