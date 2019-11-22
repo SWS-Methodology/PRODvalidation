@@ -1,0 +1,39 @@
+---
+title: '**Interactive tool for production data validation**'
+author:
+  Christian A. Mongeau Ospina\
+
+  Food and Agriculture Organization of the United Nations
+date: "`r format(Sys.time(), '%e %B %Y')`"
+output:
+  word_document: default
+  pdf_document:
+    fig_height: 2
+  html_document: default
+---
+
+**NOTE: help file needs to be completed**
+
+1. Open a session in the "agriculture production" of the LIVE environment
+1. Choose:
+   - **ONE** country
+   - elements 5510, 5312 and 5421 (production, area harvested, and yield, respectively)
+   - relevant commodities/years
+1. Choose "Run plugin" in the upper right corner of your session. Whatever
+plugin is fine.
+1. Select "Get debug token" and copy the token that appears (a string like
+abcdef12-3456-7890-abcd-ef123456789)
+1. Copy the token in the upper left input field in this tool (where it says
+"Token in agriculture production dataset")
+1. Wait until you see the outlier table in the "Outliers" tab (if you're not on it, you'll need to select the tab to see the results)
+1. The table shows the items with outliers in at least one element/year in the validation years, differentiated by element (e.g., if in the "area" column
+says "true", it means that there is at least one identified outlier in the "area" element)
+1. Select one of the items in the "Outliers" table (they are sorted by the average weight in tons in 2010-2013)
+1. Analyze the plot that will automatically open in the "Plots" tab
+1. One you figure out what to do with the outlier(s):
+   - If the outliers do not need to be fixed/removed, click in the "Looks fine" button. They will be removed from the outliers list.
+   - If the outiers need attention:
+     - If you want to remove the value, click on the _row_ of the observation you want to remove and click on "Clean series" button
+     - _(NOTE: this is doable, but not recommended: just remove the outlier)_ If you want to modify the value, click on the figure you want to fix, insert a new number and modify flags accordingly (modified values will be signaled by a red background)
+  
+**NOTE**: use "Looks fine" or "Save current data" just once: as you use one of this, the item will be marked as fixed and removed from the list of outliers, so you will not be able to see it again (in this case, you should start again).
