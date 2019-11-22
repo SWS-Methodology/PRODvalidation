@@ -20,6 +20,10 @@ ui <-
       ),
       div(
         style = "display: inline-block; vertical-align: top",
+        actionButton("dummy", "Go!") # really does nothing
+      ),
+      div(
+        style = "display: inline-block; vertical-align: top",
         actionButton("not_outlier", "Looks fine",
                      style = "background-color: green; color: white; font-weight: bold;")
       ),
@@ -233,7 +237,8 @@ server <- function(input, output, session) {
     data_prod_sws[
       to_compute == TRUE,
       new_flag :=
-        aggregateObservationFlag(flagObservationStatus[is.na(recomputed)])
+        aggregateObservationFlag(flagObservationStatus[is.na(recomputed)]),
+      by = c("geographicAreaM49", "measuredItemCPC", "timePointYears")
     ]
 
     data_prod_sws[
