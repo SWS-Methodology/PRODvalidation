@@ -577,7 +577,7 @@ server <- function(input, output, session) {
   # https://shiny.rstudio.com/articles/generating-reports.html
   output$generate_report <-
     downloadHandler(
-      filename = "report.doc",
+      filename = "report.docx",
       content = function(file) {
         cache <- readRDS(values$file_cache)
         # Copy the report file to a temporary directory before processing it, in
@@ -624,14 +624,14 @@ server <- function(input, output, session) {
         all.x = TRUE
       )
 
-    if (anyNA(tmp$status) == TRUE) {
-      showModal(
-        modalDialog(
-          title = "Important message",
-          'You need to validate all items. When you do so, no data will be shown in the "Outliers" tab.'
-        )
-      )
-    } else {
+    #if (anyNA(tmp$status) == TRUE) {
+    #  showModal(
+    #    modalDialog(
+    #      title = "Important message",
+    #      'You need to validate all items. When you do so, no data will be shown in the "Outliers" tab.'
+    #    )
+    #  )
+    #} else {
       showModal(
         modalDialog(
           title = "Confirm report",
@@ -642,7 +642,7 @@ server <- function(input, output, session) {
           )
         )
       )
-    }
+    #}
   })
 
   observeEvent(
