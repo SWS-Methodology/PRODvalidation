@@ -19,6 +19,7 @@ if ("HOSTNAME" %in% names(Sys.getenv()) && Sys.getenv()[['HOSTNAME']] == "hqlprs
   HELP_FILE <- "/srv/shiny-server/PRODvalidation/files/help.Rmd"
   REPORT_TEMPLATE <- "/srv/shiny-server/PRODvalidation/files/report.Rmd"
   REMOTE <- TRUE
+  REFERENCE_ITEMS_CROP <- "/srv/shiny-server/PRODvalidation/files/reference/items_crop.txt"
 } else {
   CONFIG_SETTINGS <- NA
   CONFIG_CERTIFICATES <- "C:/Users/mongeau.FAODOMAIN/Documents/certificates/production"
@@ -30,10 +31,15 @@ if ("HOSTNAME" %in% names(Sys.getenv()) && Sys.getenv()[['HOSTNAME']] == "hqlprs
   HELP_FILE <- "c:/Users/mongeau.FAODOMAIN/Dropbox/GitHub/SWS-Methodology/PRODvalidation/files/help.Rmd"
   REPORT_TEMPLATE <- "c:/Users/mongeau.FAODOMAIN/Dropbox/GitHub/SWS-Methodology/PRODvalidation/files/report.Rmd"
   REMOTE <- FALSE
+  REFERENCE_ITEMS_CROP <- "c:/Users/mongeau.FAODOMAIN/Dropbox/GitHub/SWS-Methodology/PRODvalidation/files/reference/items_crop.txt"
 }
+
+REFERENCE_ITEMS_CROP <- read.delim(REFERENCE_ITEMS_CROP, header = FALSE, colClasses = "character")
 
 ref_cpc[, id := paste(code, "-", description)]
 ref_m49[, id := paste(code, "-", description)]
+
+ref_cpc <- ref_cpc[code %in% REFERENCE_ITEMS_CROP[, 1]]
 
 DIM_TIME <- as.character(2014:2018)
 
