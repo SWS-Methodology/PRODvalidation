@@ -607,6 +607,8 @@ server <- function(input, output, session) {
             body = c("Production validation report attached.", file)
           )
         }
+
+        removeModal()
       }
     )
 
@@ -622,14 +624,14 @@ server <- function(input, output, session) {
         all.x = TRUE
       )
 
-    #if (anyNA(tmp$status) == TRUE) {
-    #  showModal(
-    #    modalDialog(
-    #      title = "Important message",
-    #      'You need to validate all items. When you do so, no data will be shown in the "Outliers" tab.'
-    #    )
-    #  )
-    #} else {
+    if (anyNA(tmp$status) == TRUE) {
+      showModal(
+        modalDialog(
+          title = "Important message",
+          'You need to validate all items. When you do so, no data will be shown in the "Outliers" tab.'
+        )
+      )
+    } else {
       showModal(
         modalDialog(
           title = "Confirm report",
@@ -640,7 +642,7 @@ server <- function(input, output, session) {
           )
         )
       )
-    #}
+    }
   })
 
   observeEvent(
