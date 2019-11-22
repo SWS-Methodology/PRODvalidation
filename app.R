@@ -262,10 +262,24 @@ server <- function(input, output, session) {
       dataReadProgress$close()
     })
 
+    metad <- copy(d_recomputed)
+
+    metad[, c("Value", "flagObservationStatus", "flagMethod") := NULL]
+
+    metad[,
+      `:=`(
+        Metadata          = "GENERAL",
+        Metadata_Element  = "COMMENT",
+        Metadata_Language = "en",
+        Metadata_Value    = "Recalculated during production validation"
+      )
+    ]
+
     SaveData(
       domain = "agriculture",
       dataset = "aproduction",
       data = d_recomputed,
+      metadata = metad,
       waitTimeout = 180000
     )
 
@@ -683,18 +697,31 @@ server <- function(input, output, session) {
   observeEvent(
     input$save_current,
     {
-      tmp <- values$current_data
-      setDT(tmp)
+      dat <- values$current_data
+      setDT(dat)
 
-      tmp <- tmp[modified == TRUE]
+      dat <- dat[modified == TRUE]
 
-      tmp[, modified := NULL]
+      dat[, modified := NULL]
 
-      tmp[, flagObservationStatus := as.character(flagObservationStatus)]
-      tmp[, flagMethod := as.character(flagMethod)]
-      tmp[measuredElement == "production", measuredElement := "5510"]
-      tmp[measuredElement == "area", measuredElement := "5312"]
-      tmp[measuredElement == "yield", measuredElement := "5421"]
+      dat[, flagObservationStatus := as.character(flagObservationStatus)]
+      dat[, flagMethod := as.character(flagMethod)]
+      dat[measuredElement == "production", measuredElement := "5510"]
+      dat[measuredElement == "area", measuredElement := "5312"]
+      dat[measuredElement == "yield", measuredElement := "5421"]
+
+      metad <- copy(dat)
+
+      metad[, c("Value", "flagObservationStatus", "flagMethod") := NULL]
+
+      metad[,
+        `:=`(
+          Metadata          = "GENERAL",
+          Metadata_Element  = "COMMENT",
+          Metadata_Language = "en",
+          Metadata_Value    = "Production validation"
+        )
+      ]
 
       dataReadProgress <- Progress$new(session, min = 0, max = 100)
 
@@ -705,19 +732,20 @@ server <- function(input, output, session) {
       SaveData(
         domain = "agriculture",
         dataset = "aproduction",
-        data = tmp,
+        data = dat,
+        metadata = metad,
         waitTimeout = 180000
       )
 
       # TODO: do a function as this is done also for `not_outlier`
       cache <- readRDS(values$file_cache)
-      tmp <-
+      dat <-
         data.table(
           geographicAreaM49 = strsplit(values$country, split = " - ")[[1]][1],
           measuredItemCPC = strsplit(values$item, split = " - ")[[1]][1],
           status = "action"
         )
-      cache$crops$fixed_outliers <- rbind(cache$crops$fixed_outliers, tmp)
+      cache$crops$fixed_outliers <- rbind(cache$crops$fixed_outliers, dat)
       cache$crops$fixed_outliers <- unique(cache$crops$fixed_outliers)
       saveRDS(cache, values$file_cache)
 
