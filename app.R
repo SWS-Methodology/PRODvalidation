@@ -333,24 +333,27 @@ server <- function(input, output, session) {
   output$yieldplot <-
     renderPlot({
       item <- values$mydta[input$maintable_rows_selected, measuredItemCPC]
-      d <- swsData()[measuredItemCPC == item]
+      d <- swsData()[measuredItemCPC == item & measuredElement == "yield"]
 
-      d[,
-        MeanOld := mean(Value[timePointYears %in% 2013:2015], na.rm = TRUE),
-        by = c("geographicAreaM49", "measuredElement", "measuredItemCPC")
-      ]
+      if (nrow(d) > 0) {
+        d[,
+          MeanOld := mean(Value[timePointYears %in% 2013:2015], na.rm = TRUE),
+          by = c("geographicAreaM49", "measuredElement", "measuredItemCPC")
+        ]
 
-      d[timePointYears >= 2016, upper := MeanOld * (1 + THRESHOLD_PA)]
-      d[timePointYears >= 2016, lower := MeanOld * (1 - THRESHOLD_PA)]
-      d <- d[measuredElement == "yield"]
-      d <- d[data.table(timePointYears = as.character(1960:2018)), on = "timePointYears"]
-      d <- d[timePointYears >= 1990]
-      ggplot(d, aes(x = timePointYears, group = measuredElement, color = measuredElement)) +
-       geom_line(aes(y = Value), size = 2) +
-       scale_size(range = c(1, 2), guide = FALSE) +
-       geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
-       #geom_smooth(linetype = 2) +
-       ggtitle(paste("YIELD", item))
+        d[timePointYears >= 2016, upper := MeanOld * (1 + THRESHOLD_PA)]
+        d[timePointYears >= 2016, lower := MeanOld * (1 - THRESHOLD_PA)]
+        d <- d[data.table(timePointYears = as.character(1960:2018)), on = "timePointYears"]
+        d <- d[timePointYears >= 1990]
+        ggplot(d, aes(x = timePointYears, group = measuredElement, color = measuredElement)) +
+         geom_line(aes(y = Value), size = 2) +
+         scale_size(range = c(1, 2), guide = FALSE) +
+         geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
+         #geom_smooth(linetype = 2) +
+         ggtitle(paste("YIELD", item))
+      } else {
+        NULL
+      }
     })
 
   output$prodplot <-
@@ -401,24 +404,27 @@ server <- function(input, output, session) {
     renderPlot({
       item <- values$mydta[input$maintable_rows_selected, measuredItemCPC]
 
-      d <- swsData()[measuredItemCPC == item]
+      d <- swsData()[measuredItemCPC == item & measuredElement == "area"]
 
-      d[,
-        MeanOld := mean(Value[timePointYears %in% 2013:2015], na.rm = TRUE),
-        by = c("geographicAreaM49", "measuredElement", "measuredItemCPC")
-      ]
+      if (nrow(d) > 0) {
+        d[,
+          MeanOld := mean(Value[timePointYears %in% 2013:2015], na.rm = TRUE),
+          by = c("geographicAreaM49", "measuredElement", "measuredItemCPC")
+        ]
 
-      d[timePointYears >= 2016, upper := MeanOld * (1 + THRESHOLD_PA)]
-      d[timePointYears >= 2016, lower := MeanOld * (1 - THRESHOLD_PA)]
-      d <- d[measuredElement == "area"]
-      d <- d[data.table(timePointYears = as.character(1960:2018)), on = "timePointYears"]
-      d <- d[timePointYears >= 1990]
-      ggplot(d, aes(x = timePointYears, group = measuredElement, color = measuredElement)) +
-       geom_line(aes(y = Value), size = 2) +
-       scale_size(range = c(1, 2), guide = FALSE) +
-       geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
-       #geom_smooth(linetype = 2) +
-       ggtitle(paste("AREA", item))
+        d[timePointYears >= 2016, upper := MeanOld * (1 + THRESHOLD_PA)]
+        d[timePointYears >= 2016, lower := MeanOld * (1 - THRESHOLD_PA)]
+        d <- d[data.table(timePointYears = as.character(1960:2018)), on = "timePointYears"]
+        d <- d[timePointYears >= 1990]
+        ggplot(d, aes(x = timePointYears, group = measuredElement, color = measuredElement)) +
+         geom_line(aes(y = Value), size = 2) +
+         scale_size(range = c(1, 2), guide = FALSE) +
+         geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
+         #geom_smooth(linetype = 2) +
+         ggtitle(paste("AREA", item))
+      } else {
+        NULL
+      }
     })
 
   output$maintable <-
