@@ -10,6 +10,10 @@ ui <-
       ),
       div(
         style = "display: inline-block; vertical-align: top",
+        actionButton("dummy", "Go!") # really does nothing
+      ),
+      div(
+        style = "display: inline-block; vertical-align: top",
         actionButton("clear_row", "Clear row",
                      style = "background-color: tomato;")
       ),
@@ -17,10 +21,6 @@ ui <-
         style = "display: inline-block; vertical-align: top",
         actionButton("save_current", "Save current data",
                      style = "background-color: yellow;")
-      ),
-      div(
-        style = "display: inline-block; vertical-align: top",
-        actionButton("dummy", "Go!") # really does nothing
       ),
       div(
         style = "display: inline-block; vertical-align: top",
