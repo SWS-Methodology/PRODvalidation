@@ -694,7 +694,7 @@ server <- function(input, output, session) {
         div(
           "If you think that there are indeed outliers, use ONE of these two options:",
           tags$ul(
-            tags$li("Click on", span(style = "background-color: tomato; white; border-style: solid; border-width: 1px; border-color: grey;", "Clear row"), "to remove the observation (value and flags will be blanked)."),
+            tags$li("Click on the row with the obervation you want to remove and then on", span(style = "background-color: tomato; white; border-style: solid; border-width: 1px; border-color: grey;", "Clear row"), "to remove it (value and flags will be blanked)."),
             tags$li("Edit the data by double clicking on the value cell", strong("and"), "choosing corresponding E,f flags (the cell of the value will become red).")
           ),
           "When you are done cleaning/editing the item, click on",
