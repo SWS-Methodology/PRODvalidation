@@ -680,7 +680,11 @@ server <- function(input, output, session) {
         span(style = "font-weight: bold;", "Black dots"),
         "are protected data, ",
         span(style = "font-weight: bold; color : red;", "big red dots"),
-        "are outliers found in protected data."
+        "are outliers found in protected data.",
+        div(
+          "If you think that this item is OK (maybe the outlier was not severe), click on",
+          span(style = "background-color: green; color: white; font-weight: bold; border-style: solid; border-width: 1px; border-color: grey;", "Looks fine.")
+        )
       )
     })
 
