@@ -355,6 +355,8 @@ server <- function(input, output, session) {
 
   output$yieldplot <-
     renderPlot({
+      req(input$maintable_rows_selected)
+
       item <- values$mydta[input$maintable_rows_selected, measuredItemCPC]
       d <- swsData()[measuredItemCPC == item & measuredElement == "yield"]
 
@@ -397,6 +399,8 @@ server <- function(input, output, session) {
 
   output$prodplot <-
     renderPlot({
+      req(input$maintable_rows_selected)
+
       item <- values$mydta[input$maintable_rows_selected, measuredItemCPC]
       d <- swsData()[measuredItemCPC == item]
 
@@ -444,6 +448,8 @@ server <- function(input, output, session) {
 
   output$areaplot <-
     renderPlot({
+      req(input$maintable_rows_selected)
+
       item <- values$mydta[input$maintable_rows_selected, measuredItemCPC]
 
       d <- swsData()[measuredItemCPC == item & measuredElement == "area"]
@@ -485,6 +491,8 @@ server <- function(input, output, session) {
 
   output$hot <-
     renderRHandsontable({
+      req(input$maintable_rows_selected)
+
       rhandsontable(values$current_data, height = 500, col_highlight = 0,
                     row_highlight = values$modif, selectCallback = TRUE,
                     readOnly = FALSE) %>%
@@ -546,92 +554,98 @@ server <- function(input, output, session) {
         outlier := abs(ratio - 1) > THRESHOLD_Y
       ]
 
-      cache <- readRDS(values$file_cache)
+      if (nrow(d[outlier == TRUE]) > 0) {
 
-      if (!("original_outliers" %in% names(cache$crops))) {
-        cache$crops$original_outliers <-
-          d[outlier == TRUE][, -"outlier", with = FALSE]
+        cache <- readRDS(values$file_cache)
 
-        saveRDS(cache, values$file_cache)
-      }
+        if (!("original_outliers" %in% names(cache$crops))) {
+          cache$crops$original_outliers <-
+            d[outlier == TRUE][, -"outlier", with = FALSE]
 
-      if (!("fixed_outliers" %in% names(cache$crops))) {
-        cache$crops$fixed_outliers <-
-          data.table(
-            geographicAreaM49 = character(),
-            measuredItemCPC = character(),
-            status = character()
+          saveRDS(cache, values$file_cache)
+        }
+
+        if (!("fixed_outliers" %in% names(cache$crops))) {
+          cache$crops$fixed_outliers <-
+            data.table(
+              geographicAreaM49 = character(),
+              measuredItemCPC = character(),
+              status = character()
+            )
+
+          saveRDS(cache, values$file_cache)
+        }
+
+
+        d_unique <-
+          unique(
+            d[outlier == TRUE, .(geographicAreaM49, measuredItemCPC, measuredElement, outlier)]
           )
 
-        saveRDS(cache, values$file_cache)
+        values$outliers_info <-
+          list(
+            items      = length(d_unique[, unique(measuredItemCPC)]),
+            total      = nrow(d_unique),
+            area       = nrow(d_unique[measuredElement == "area"]),
+            production = nrow(d_unique[measuredElement == "production"]),
+            yield      = nrow(d_unique[measuredElement == "yield"])
+          )
+
+        d_out <-
+          dcast.data.table(
+            d_unique,
+            geographicAreaM49 + measuredItemCPC ~ measuredElement,
+            value.var = 'outlier'
+          )
+
+        d_out[!cache$crops$fixed_outliers, on = c("geographicAreaM49", "measuredItemCPC")]
+
+        avg_value <-
+          unique(
+            d[outlier == TRUE][, .(geographicAreaM49, measuredItemCPC, MeanOld)],
+            by = c("geographicAreaM49", "measuredItemCPC")
+          )
+
+        d_table <-
+          merge(d_out, avg_value, by = c("geographicAreaM49", "measuredItemCPC"))
+
+        # remove already fixed outliers
+        d_table <-
+          d_table[
+            !unique(cache$crops$fixed_outliers[, .(geographicAreaM49, measuredItemCPC)]),
+            on = c("geographicAreaM49", "measuredItemCPC")
+          ]
+
+        d_table[, geographicAreaM49 := NULL]
+
+        d_table <-
+          merge(
+            d_table,
+            ref_cpc[, .(measuredItemCPC = code, description)],
+            by = "measuredItemCPC",
+            all.x = TRUE
+          )
+
+        setorderv(d_table, "MeanOld", order = -1)
+
+        d_table[, status := factor(NA_character_, levels = c("NO", "YES"))]
+
+        values$mydta <- d_table
+
+        setnames(d_table, "MeanOld", "avg_prod_2013_2015")
+
+        myd <-
+          DT::datatable(
+            d_table, rownames = FALSE, selection = 'single',
+            callback = DT::JS('$("tbody").on("click.dt", "tr", function() {tabs = $("li"); $(tabs[0]).click()});')
+          )
+
+        myd <-
+          DT::formatCurrency(myd, "avg_prod_2013_2015", digits = 1, currency = '')
+
+      } else {
+        myd <- data.table(`No outliers found. Open your SWS session and save re-calculations.` = character())
       }
-
-
-      d_unique <-
-        unique(
-          d[outlier == TRUE, .(geographicAreaM49, measuredItemCPC, measuredElement, outlier)]
-        )
-
-      values$outliers_info <-
-        list(
-          items      = length(d_unique[, unique(measuredItemCPC)]),
-          total      = nrow(d_unique),
-          area       = nrow(d_unique[measuredElement == "area"]),
-          production = nrow(d_unique[measuredElement == "production"]),
-          yield      = nrow(d_unique[measuredElement == "yield"])
-        )
-
-      d_out <-
-        dcast.data.table(
-          d_unique,
-          geographicAreaM49 + measuredItemCPC ~ measuredElement,
-          value.var = 'outlier'
-        )
-
-      d_out[!cache$crops$fixed_outliers, on = c("geographicAreaM49", "measuredItemCPC")]
-
-      avg_value <-
-        unique(
-          d[outlier == TRUE][, .(geographicAreaM49, measuredItemCPC, MeanOld)],
-          by = c("geographicAreaM49", "measuredItemCPC")
-        )
-
-      d_table <-
-        merge(d_out, avg_value, by = c("geographicAreaM49", "measuredItemCPC"))
-
-      # remove already fixed outliers
-      d_table <-
-        d_table[
-          !unique(cache$crops$fixed_outliers[, .(geographicAreaM49, measuredItemCPC)]),
-          on = c("geographicAreaM49", "measuredItemCPC")
-        ]
-
-      d_table[, geographicAreaM49 := NULL]
-
-      d_table <-
-        merge(
-          d_table,
-          ref_cpc[, .(measuredItemCPC = code, description)],
-          by = "measuredItemCPC",
-          all.x = TRUE
-        )
-
-      setorderv(d_table, "MeanOld", order = -1)
-
-      d_table[, status := factor(NA_character_, levels = c("NO", "YES"))]
-
-      values$mydta <- d_table
-
-      setnames(d_table, "MeanOld", "avg_prod_2013_2015")
-
-      myd <-
-        DT::datatable(
-          d_table, rownames = FALSE, selection = 'single',
-          callback = DT::JS('$("tbody").on("click.dt", "tr", function() {tabs = $("li"); $(tabs[0]).click()});')
-        )
-
-      myd <-
-        DT::formatCurrency(myd, "avg_prod_2013_2015", digits = 1, currency = '')
 
       return(myd)
     })
