@@ -367,8 +367,8 @@ server <- function(input, output, session) {
           by = c("geographicAreaM49", "measuredElement", "measuredItemCPC")
         ]
 
-        d[timePointYears >= 2016, upper := MeanOld * (1 + THRESHOLD_PA)]
-        d[timePointYears >= 2016, lower := MeanOld * (1 - THRESHOLD_PA)]
+        d[timePointYears >= 2016, upper := MeanOld * (1 + THRESHOLD_Y)]
+        d[timePointYears >= 2016, lower := MeanOld * (1 - THRESHOLD_Y)]
 
         d <- d[data.table(timePointYears = as.character(1960:2018)), on = "timePointYears"]
         d <- d[timePointYears >= 1990]
