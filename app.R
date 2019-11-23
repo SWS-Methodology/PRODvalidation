@@ -4,6 +4,7 @@ source("global.R")
 
 ui <-
   fluidPage(
+    titlePanel("Validation of protected production data"),
     fluidRow(
       div(
         style = "display: inline-block; vertical-align: top",
@@ -668,7 +669,7 @@ server <- function(input, output, session) {
       div(
         style = "font-weight: bold; background-color: lightyellow; padding: 30px;",
         div(out_msg),
-        div(style = "color: red;", "Choose one row below (i.e., click on a row).")
+        div(style = "color: red;", "Choose one item below (i.e., click on a row).")
       )
     })
 
