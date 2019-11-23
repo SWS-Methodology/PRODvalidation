@@ -598,7 +598,7 @@ server <- function(input, output, session) {
 
       div(style = "font-weight: bold; background-color: lightyellow;",
         div(out_msg),
-        div(style = "color: red;", "Choose one row below"),
+        div(style = "color: red;", "Choose one row below (i.e., click on a row)"),
         br()
       )
     })
