@@ -1,5 +1,7 @@
 source("global.R")
 
+# TODO: all styles should be defined in a CSS file
+
 ui <-
   fluidPage(
     fluidRow(
@@ -47,6 +49,7 @@ ui <-
       tabPanel(
         "Plots",
         value = "myplots",
+        uiOutput("helpplots"),
         plotOutput("prodplot"),
         plotOutput("yieldplot"),
         plotOutput("areaplot")
@@ -54,6 +57,7 @@ ui <-
       tabPanel(
         "Data",
         value = "mydata",
+        uiOutput("helpdata"),
         rHandsontableOutput("hot")
       ),
       tabPanel('Help', 
@@ -362,43 +366,121 @@ server <- function(input, output, session) {
 
         d[timePointYears >= 2016, upper := MeanOld * (1 + THRESHOLD_PA)]
         d[timePointYears >= 2016, lower := MeanOld * (1 - THRESHOLD_PA)]
+
         d <- d[data.table(timePointYears = as.character(1960:2018)), on = "timePointYears"]
         d <- d[timePointYears >= 1990]
+
+        d[, outlier := NA_real_]
+
+        d[
+          Protected == TRUE &
+            timePointYears >= 2016 &
+            (Value > MeanOld * (1 + THRESHOLD_Y) | Value < MeanOld * (1 - THRESHOLD_Y)),
+          outlier := Value
+        ]
+
+        d[, protected_value := ifelse(Protected == TRUE, Value, NA_real_)]
+
         ggplot(d, aes(x = timePointYears, group = measuredElement, color = measuredElement)) +
          geom_line(aes(y = Value), size = 2) +
          scale_size(range = c(1, 2), guide = FALSE) +
+         geom_point(aes(y = outlier), color = "red", size = 10) +
+         geom_point(aes(y = protected_value), color = "black", size = 2) +
          geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
-         #geom_smooth(linetype = 2) +
          ggtitle(paste("YIELD", item))
       } else {
         NULL
       }
     })
 
+  # TODO: Do a funciton for the data in plots (code is repeated)
+
   output$prodplot <-
     renderPlot({
       item <- values$mydta[input$maintable_rows_selected, measuredItemCPC]
       d <- swsData()[measuredItemCPC == item]
 
-      d[
-        measuredElement == "production",
-        MeanOld := mean(Value[timePointYears %in% 2013:2015], na.rm = TRUE),
-        by = c("geographicAreaM49", "measuredElement", "measuredItemCPC")
-      ]
-
-      d[timePointYears >= 2016, upper := MeanOld * (1 + THRESHOLD_PA)]
-      d[timePointYears >= 2016, lower := MeanOld * (1 - THRESHOLD_PA)]
       d <- d[measuredElement %in% c("production", "imports", "exports")]
-      d[, plotsize := ifelse(measuredElement == "production", 2, 1)]
-      d[, measuredElement := factor(measuredElement, levels = c("production", "imports", "exports"))]
-      d <- d[data.table(timePointYears = as.character(1960:2018)), on = "timePointYears"]
-      d <- d[timePointYears >= 1990]
-      ggplot(d, aes(x = timePointYears, group = measuredElement, color = measuredElement)) +
-       geom_line(aes(y = Value, size = plotsize)) +
-       scale_size(range = c(1, 2), guide = FALSE) +
-       geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
-       #geom_smooth(linetype = 2) +
-       ggtitle(paste("PRODUCTION", item))
+
+      if (nrow(d) > 0) {
+        d[
+          measuredElement == "production",
+          MeanOld := mean(Value[timePointYears %in% 2013:2015], na.rm = TRUE),
+          by = c("geographicAreaM49", "measuredElement", "measuredItemCPC")
+        ]
+
+        d[timePointYears >= 2016, upper := MeanOld * (1 + THRESHOLD_PA)]
+        d[timePointYears >= 2016, lower := MeanOld * (1 - THRESHOLD_PA)]
+
+        d[, plotsize := ifelse(measuredElement == "production", 2, 1)]
+        d[, measuredElement := factor(measuredElement, levels = c("production", "imports", "exports"))]
+
+        d <- d[data.table(timePointYears = as.character(1960:2018)), on = "timePointYears"]
+        d <- d[timePointYears >= 1990]
+
+        d[, outlier := NA_real_]
+
+        d[
+          measuredElement == "production" &
+            Protected == TRUE &
+            timePointYears >= 2016 &
+            (Value > MeanOld * (1 + THRESHOLD_PA) | Value < MeanOld * (1 - THRESHOLD_PA)),
+          outlier := Value
+        ]
+
+        d[, protected_value := ifelse(Protected == TRUE, Value, NA_real_)]
+
+        ggplot(d, aes(x = timePointYears, group = measuredElement, color = measuredElement)) +
+         geom_line(aes(y = Value, size = plotsize)) +
+         scale_size(range = c(1, 2), guide = FALSE) +
+         geom_point(aes(y = outlier), color = "red", size = 10) +
+         geom_point(aes(y = protected_value), color = "black", size = 2) +
+         geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
+         ggtitle(paste("PRODUCTION", item))
+      } else {
+        NULL
+      }
+    })
+
+  output$areaplot <-
+    renderPlot({
+      item <- values$mydta[input$maintable_rows_selected, measuredItemCPC]
+
+      d <- swsData()[measuredItemCPC == item & measuredElement == "area"]
+
+      if (nrow(d) > 0) {
+        d[,
+          MeanOld := mean(Value[timePointYears %in% 2013:2015], na.rm = TRUE),
+          by = c("geographicAreaM49", "measuredElement", "measuredItemCPC")
+        ]
+
+        d[timePointYears >= 2016, upper := MeanOld * (1 + THRESHOLD_PA)]
+        d[timePointYears >= 2016, lower := MeanOld * (1 - THRESHOLD_PA)]
+
+        d <- d[data.table(timePointYears = as.character(1960:2018)), on = "timePointYears"]
+        d <- d[timePointYears >= 1990]
+
+        d[, outlier := NA_real_]
+
+        d[
+          Protected == TRUE &
+            timePointYears >= 2016 &
+            (Value > MeanOld * (1 + THRESHOLD_PA) | Value < MeanOld * (1 - THRESHOLD_PA)),
+          outlier := Value
+        ]
+
+        d[, protected_value := ifelse(Protected == TRUE, Value, NA_real_)]
+
+        ggplot(d, aes(x = timePointYears, group = measuredElement, color = measuredElement)) +
+         geom_line(aes(y = Value), size = 2) +
+         scale_size(range = c(1, 2), guide = FALSE) +
+         geom_point(aes(y = outlier), color = "red", size = 10) +
+         geom_point(aes(y = protected_value), color = "black", size = 2) +
+         geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
+         ggtitle(paste("AREA", item))
+      } else {
+        NULL
+      }
     })
 
   output$hot <-
@@ -418,33 +500,6 @@ server <- function(input, output, session) {
             }")
     })
 
-
-  output$areaplot <-
-    renderPlot({
-      item <- values$mydta[input$maintable_rows_selected, measuredItemCPC]
-
-      d <- swsData()[measuredItemCPC == item & measuredElement == "area"]
-
-      if (nrow(d) > 0) {
-        d[,
-          MeanOld := mean(Value[timePointYears %in% 2013:2015], na.rm = TRUE),
-          by = c("geographicAreaM49", "measuredElement", "measuredItemCPC")
-        ]
-
-        d[timePointYears >= 2016, upper := MeanOld * (1 + THRESHOLD_PA)]
-        d[timePointYears >= 2016, lower := MeanOld * (1 - THRESHOLD_PA)]
-        d <- d[data.table(timePointYears = as.character(1960:2018)), on = "timePointYears"]
-        d <- d[timePointYears >= 1990]
-        ggplot(d, aes(x = timePointYears, group = measuredElement, color = measuredElement)) +
-         geom_line(aes(y = Value), size = 2) +
-         scale_size(range = c(1, 2), guide = FALSE) +
-         geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
-         #geom_smooth(linetype = 2) +
-         ggtitle(paste("AREA", item))
-      } else {
-        NULL
-      }
-    })
 
   output$maintable <-
     DT::renderDataTable({
@@ -596,10 +651,42 @@ server <- function(input, output, session) {
           values$outliers_info$yield
         )
 
-      div(style = "font-weight: bold; background-color: lightyellow;",
+      div(
+        style = "font-weight: bold; background-color: lightyellow; padding: 30px;",
         div(out_msg),
-        div(style = "color: red;", "Choose one row below (i.e., click on a row)"),
-        br()
+        div(style = "color: red;", "Choose one row below (i.e., click on a row).")
+      )
+    })
+
+  output$helpplots <-
+    renderUI({
+      div(
+        style = "background-color: lightyellow; padding: 30px;",
+        span(style = "font-weight: bold;", "Black dots"),
+        "are protected data, ",
+        span(style = "font-weight: bold; color : red;", "big red dots"),
+        "are outliers found in protected data."
+      )
+    })
+
+  output$helpdata <-
+    renderUI({
+      div(
+        style = "background-color: lightyellow; padding: 30px;",
+        div(
+          "If you think that this item is OK (maybe the outlier was not severe), click on",
+          span(style = "background-color: green; color: white; font-weight: bold; border-style: solid; border-width: 1px; border-color: grey;", "Looks fine.")
+        ),
+        div(
+          "If you think that there are indeed outliers:",
+          tags$ul(
+            tags$li("Click on", span(style = "background-color: tomato; white; border-style: solid; border-width: 1px; border-color: grey;", "Clear row"), "to remove the observation (value and flags will be blanked)."),
+            tags$li("Edit the data by double clicking on the value cell", strong("and"), "choosing corresponding E,f flags (the cell of the value will become red).")
+          ),
+          "When you are done cleaning/editing the item, click on",
+          span(style = "background-color: yellow; white; border-style: solid; border-width: 1px; border-color: grey;", "Save current data"),
+          "."
+        )
       )
     })
 
