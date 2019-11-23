@@ -41,7 +41,7 @@ ui <-
       tabPanel(
         "Outliers",
         value = "myoutliers",
-        verbatimTextOutput("infotext"),
+        uiOutput("helpoutliers"),
         DT::dataTableOutput("maintable")
       ),
       tabPanel(
@@ -483,7 +483,6 @@ server <- function(input, output, session) {
         outlier := abs(ratio - 1) > THRESHOLD_PA
       ]
 
-
       d[
         Protected == TRUE &
           timePointYears >= 2016 &
@@ -582,16 +581,27 @@ server <- function(input, output, session) {
       return(myd)
     })
 
-  output$infotext <-
-    renderText(
-      sprintf(
-        "There are outliers in %s items and %s elements (of which: %s in area, %s in production, %s in yield).",
-        values$outliers_info$items,
-        values$outliers_info$total,
-        values$outliers_info$area,
-        values$outliers_info$production,
-        values$outliers_info$yield)
-    )
+  output$helpoutliers <-
+    renderUI({
+      req(input$tokenField)
+
+      out_msg <-
+        sprintf(
+          "There are outliers in %s items and %s elements (of which:
+            %s in area, %s in production, %s in yield).",
+          values$outliers_info$items,
+          values$outliers_info$total,
+          values$outliers_info$area,
+          values$outliers_info$production,
+          values$outliers_info$yield
+        )
+
+      div(style = "font-weight: bold; background-color: lightyellow;",
+        div(out_msg),
+        div(style = "color: red;", "Choose one row below"),
+        br()
+      )
+    })
 
   # https://shiny.rstudio.com/articles/generating-reports.html
   output$generate_report <-
