@@ -678,7 +678,7 @@ server <- function(input, output, session) {
           span(style = "background-color: green; color: white; font-weight: bold; border-style: solid; border-width: 1px; border-color: grey;", "Looks fine.")
         ),
         div(
-          "If you think that there are indeed outliers:",
+          "If you think that there are indeed outliers, use ONE of these two options:",
           tags$ul(
             tags$li("Click on", span(style = "background-color: tomato; white; border-style: solid; border-width: 1px; border-color: grey;", "Clear row"), "to remove the observation (value and flags will be blanked)."),
             tags$li("Edit the data by double clicking on the value cell", strong("and"), "choosing corresponding E,f flags (the cell of the value will become red).")
