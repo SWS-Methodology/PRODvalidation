@@ -219,6 +219,8 @@ server <- function(input, output, session) {
       by = c("geographicAreaM49", "measuredItemCPC", "timePointYears")
     ]
 
+    data_prod_sws[, recomputed := NA_real_]
+
     data_prod_sws[
       to_compute == TRUE,
       recomputed := compute_remaining_element(.SD),
