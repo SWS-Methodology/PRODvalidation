@@ -45,7 +45,9 @@ ui <-
         "Outliers",
         value = "myoutliers",
         uiOutput("helpoutliers"),
-        DT::dataTableOutput("maintable")
+        DT::dataTableOutput("maintable"),
+        uiOutput("debugmaininfo"),
+        DT::dataTableOutput("debugmain")
       ),
       tabPanel(
         "Plots",
@@ -78,6 +80,7 @@ server <- function(input, output, session) {
       modif = NULL,
       flags = NULL,
       file_cache = NA_character_,
+      violation_identities = NULL,
       session_info = NULL
     )
 
@@ -164,6 +167,19 @@ server <- function(input, output, session) {
         GetData(key_prod),
         error = function(e) stop(safeError("Something went wrong when downloading PRODUCTION data."))
       )
+
+    d_mult_identities <-
+      data_prod_sws[,
+        .SD[sum(flagObservationStatus == "I" & flagMethod == "i") > 1],
+        by = c("geographicAreaM49", "measuredItemCPC", "timePointYears")
+      ]
+
+    if (nrow(d_mult_identities) > 0) {
+      values$violation_identities <- d_mult_identities
+      return(NULL)
+    } else {
+      values$violation_identities <- NULL
+    }
 
     values$file_cache <- file.path(SESSIONS_DIR, paste0(input$tokenField, ".rds"))
 
@@ -397,6 +413,23 @@ server <- function(input, output, session) {
         NULL
       }
     })
+
+  output$debugmaininfo <-
+    renderUI({
+      req(values$violation_identities)
+      div(
+        style = "color: red; font-weight: bold; font-size: 2em;",
+        br(),
+        "There are some items with more than one identity.",
+        "Only one is allowed. See below, and fix this."
+      )
+    })
+
+  output$debugmain <-
+    DT::renderDataTable({
+      DT::datatable(values$violation_identities)
+    })
+
 
   # TODO: Do a funciton for the data in plots (code is repeated)
 
