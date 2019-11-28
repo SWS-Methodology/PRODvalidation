@@ -237,8 +237,6 @@ server <- function(input, output, session) {
 
     data_prod_sws[, recomputed := NA_real_]
 
-    browser()
-
     data_prod_sws[
       to_compute == TRUE,
       recomputed := compute_remaining_element(.SD),
