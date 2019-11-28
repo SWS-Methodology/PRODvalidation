@@ -421,7 +421,7 @@ server <- function(input, output, session) {
         style = "color: red; font-weight: bold; font-size: 2em;",
         br(),
         "There are some items with more than one identity.",
-        "Only one is allowed. See below, and fix this."
+        "Only one is allowed. See below, and fix this in your SWS session."
       )
     })
 
