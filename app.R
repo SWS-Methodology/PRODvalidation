@@ -529,7 +529,7 @@ server <- function(input, output, session) {
     renderRHandsontable({
       req(input$maintable_rows_selected)
 
-      rhandsontable(values$current_data, height = 500, col_highlight = 0,
+      rhandsontable(values$current_data, height = 500,
                     row_highlight = values$modif, selectCallback = TRUE,
                     readOnly = FALSE) %>%
         hot_col("modified", colWidths = 0.1) %>%
