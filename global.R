@@ -6,7 +6,7 @@ library(data.table)
 library(faoswsFlag)
 library(rhandsontable)
 
-SERVER <- "https://hqlprswsas2.hq.un.fao.org:8181/sws"
+SERVER <- "https://sws.fao.org:443"
 
 if ("HOSTNAME" %in% names(Sys.getenv()) && Sys.getenv()[['HOSTNAME']] == "hqlprsws1.hq.un.fao.org") {
   CONFIG_SETTINGS <- NA
